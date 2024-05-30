@@ -16,4 +16,6 @@ router.get("/", (req, res) => {
 
 router.patch("/:userId", [isAuthenticated, validateSchema(updateUserPayload)], user.update);
 
+router.delete("/:userId", [isAuthenticated], user.delete);
+
 module.exports = router;

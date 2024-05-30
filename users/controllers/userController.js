@@ -52,7 +52,30 @@ module.exports = {
       });
     }
   },
-  delete: (req, res) => {
-    console.log("test");
+  delete: async (req, res) => {
+    const {
+      user: { userId },
+    } = req;
+
+    try {
+      const user = await User.findByIdAndDelete(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      return res.status(200).json({
+        status: true,
+        message: "User deleted successfully",
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: false,
+        error: err.message,
+      });
+    }
   },
 };
