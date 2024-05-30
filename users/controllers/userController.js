@@ -1,17 +1,56 @@
 const bcrypt = require("bcrypt");
-
-// models
 const User = require("../../models/userModel");
 
-module.exports = {
-  update: async (req, res) => {
-    const {
-      user: { userId },
-      body: payload,
-    } = req;
+// Helper function to handle errors
+const handleError = (res, error, message = "Server Error") => {
+  return res.status(500).json({
+    status: false,
+    error: {
+      message,
+      details: error.message || error,
+    },
+  });
+};
 
-    // IF the payload does not have any keys,
-    // THEN return an error, as nothing can be updated
+// Helper function to fetch user by ID
+const fetchUserById = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw new Error("Error fetching user");
+  }
+};
+
+module.exports = {
+  getById: async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      const user = await fetchUserById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          error: {
+            message: "User not found",
+          },
+        });
+      }
+
+      return res.status(200).json({
+        status: true,
+        data: user,
+      });
+    } catch (error) {
+      return handleError(res, error, "Error fetching user");
+    }
+  },
+
+  update: async (req, res) => {
+    const { userId } = req.user;
+    const payload = req.body;
+
     if (!Object.keys(payload).length) {
       return res.status(400).json({
         status: false,
@@ -21,41 +60,37 @@ module.exports = {
       });
     }
 
-    // Check if the password is being updated and hash it if present
     if (payload.password) {
       try {
         payload.password = await bcrypt.hash(payload.password, 10);
-      } catch (err) {
-        return res.status(500).json({
-          status: false,
-          error: {
-            message: "Error hashing password",
-            details: err,
-          },
-        });
+      } catch (error) {
+        return handleError(res, error, "Error hashing password");
       }
     }
 
-    // Update the user document in the database
     try {
-      await User.findOneAndUpdate({ _id: userId }, payload);
-      const updatedUser = await User.findOne({ _id: userId });
+      const updatedUser = await User.findByIdAndUpdate(userId, payload, { new: true });
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          status: false,
+          error: {
+            message: "User not found",
+          },
+        });
+      }
 
       return res.status(200).json({
         status: true,
         data: updatedUser.toJSON(),
       });
-    } catch (err) {
-      return res.status(500).json({
-        status: false,
-        error: err,
-      });
+    } catch (error) {
+      return handleError(res, error, "Error updating user");
     }
   },
+
   delete: async (req, res) => {
-    const {
-      user: { userId },
-    } = req;
+    const { userId } = req.user;
 
     try {
       const user = await User.findByIdAndDelete(userId);
@@ -71,11 +106,8 @@ module.exports = {
         status: true,
         message: "User deleted successfully",
       });
-    } catch (err) {
-      return res.status(500).json({
-        status: false,
-        error: err.message,
-      });
+    } catch (error) {
+      return handleError(res, error, "Error deleting user");
     }
   },
 };

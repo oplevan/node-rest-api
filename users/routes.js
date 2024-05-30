@@ -1,3 +1,6 @@
+// TODO
+// 1. fetch all users (admin only)
+
 const router = require("express").Router();
 
 // controllers
@@ -10,12 +13,10 @@ const validateSchema = require("../middlewares/validateSchema");
 // schemas
 const updateUserPayload = require("./schemas/updateUserPayload");
 
-router.get("/", (req, res) => {
-  res.send({ status: "Fetch all users" });
-});
+router.get("/:userId", [isAuthenticated], user.getById); // fetch user with given ID
 
-router.patch("/:userId", [isAuthenticated, validateSchema(updateUserPayload)], user.update);
+router.patch("/:userId", [isAuthenticated, validateSchema(updateUserPayload)], user.update); // update user with given ID
 
-router.delete("/:userId", [isAuthenticated], user.delete);
+router.delete("/:userId", [isAuthenticated], user.delete); // delete user with given ID
 
 module.exports = router;
