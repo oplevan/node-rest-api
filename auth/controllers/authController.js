@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 // import model
-const User = require("../models/userModel");
+const User = require("../../models/userModel");
 
 module.exports = {
   register: (req, res) => {

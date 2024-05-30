@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const auth = require("./authController");
+const auth = require("./controllers/authController");
 
 // schemas
 const registerSchema = require("./schemas/registerSchema");
