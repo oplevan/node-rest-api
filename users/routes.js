@@ -7,10 +7,13 @@ const user = require("./controllers/userController");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const validateSchema = require("../middlewares/validateSchema");
 
+// schemas
+const updateUserPayload = require("./schemas/updateUserPayload");
+
 router.get("/", (req, res) => {
   res.send({ status: "Fetch all users" });
 });
 
-router.patch("/:userId", isAuthenticated, user.update);
+router.patch("/:userId", [isAuthenticated, validateSchema(updateUserPayload)], user.update);
 
 module.exports = router;
