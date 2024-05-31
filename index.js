@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.get("/health", (req, res) => res.send({ message: "Life is good." }));
+app.get("/", (req, res) => res.send({ message: "Dev API up and running 🚀" }));
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/products", productRoutes);
