@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // serve static files in the `public` folder
-app.use("/public", express.static("public"));
+app.use(express.static("./public"));
 
 // Routes
 app.get("/", (req, res) => res.send({ message: "Dev API up and running 🚀" }));

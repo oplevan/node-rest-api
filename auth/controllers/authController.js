@@ -116,8 +116,6 @@ module.exports = {
       user.verificationToken = undefined; // Clear the token once verified
       await user.save();
 
-      // res.status(200).json({ message: "Email verified successfully" });
-
       // Redirect to the "Email Verified" page
       res.redirect("/public/email-verified.html");
     } catch (error) {
