@@ -7,6 +7,7 @@ const dbConnect = require("./dbConnect");
 const authRoutes = require("./auth/routes");
 const userRoutes = require("./users/routes");
 const productRoutes = require("./products/routes");
+const folderRoutes = require("./folders/routes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.get("/", (req, res) => res.send({ message: "Dev API up and running 🚀" }))
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/products", productRoutes);
+app.use("/folders", folderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
