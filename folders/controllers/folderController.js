@@ -43,7 +43,7 @@ module.exports = {
       // Respond with success message
       res.status(201).json({
         message: "Folder created Successfully!",
-        result,
+        newFolder: result,
       });
     } catch (error) {
       console.error("Error during registration:", error); // Add detailed logging
