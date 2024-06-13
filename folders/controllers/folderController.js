@@ -139,7 +139,8 @@ module.exports = {
         data: folder.destinations,
       });
     } catch (error) {
-      return handleError(res, error, "Error deleting destination");
+      console.log(error);
+      // return handleError(res, error, "Error deleting destination");
     }
   },
   upvoteDestination: async (req, res) => {
