@@ -11,6 +11,11 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String },
   isVerified: { type: Boolean, default: false },
   verificationToken: { type: String },
+  otp: {
+    token: { type: String },
+    expires: { type: Date },
+    isVerified: { type: Boolean, default: false },
+  },
 });
 
 module.exports = mongoose.model.Users || mongoose.model("users", UserSchema);

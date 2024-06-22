@@ -1,17 +1,11 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const transporter = require("../../utils/transporter");
+
+const { generateOTP, sendOTP, verifyOTP } = require("./otpController");
 
 // models
 const User = require("../../models/userModel");
-
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
 
 const generateVerificationToken = () => {
   return jwt.sign({}, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -39,11 +33,11 @@ module.exports = {
       const result = await user.save();
 
       // Send verification email
-      const verificationUrl = `http://localhost:3000/auth/verify-email?token=${verificationToken}`;
+      const verificationUrl = `${process.env.BASE_URL}/auth/verify-email?token=${verificationToken}`;
       await transporter.sendMail({
         to: email,
         subject: "Email Verification",
-        html: `<p>Please verify your email by clicking on the following link: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
+        html: `<p>Please confirm your email by clicking link below: <br/><br/><a href="${verificationUrl}">Confirm my email</a></p>`,
       });
 
       // Respond with success message
@@ -53,10 +47,16 @@ module.exports = {
       });
     } catch (error) {
       console.error("Error during registration:", error); // Add detailed logging
-      res.status(500).json({
-        message: "Error creating user",
-        error: error.message,
-      });
+      if (error.errorResponse.code === 11000) {
+        return res.status(409).json({
+          message: "Email already exists",
+        });
+      } else {
+        res.status(500).json({
+          message: "Error creating user",
+          error: error.message,
+        });
+      }
     }
   },
 
@@ -81,6 +81,7 @@ module.exports = {
       if (!user.isVerified) {
         return res.status(403).json({
           message: "Email not verified",
+          email: user.email,
         });
       }
 
@@ -117,11 +118,55 @@ module.exports = {
       await user.save();
 
       // Redirect to the "Email Verified" page
-      res.redirect("/public/email-verified.html");
+      res.redirect("/email-verified.html");
     } catch (error) {
       console.error("Error during email verification:", error); // Add detailed logging
       res.status(400).json({ message: "Invalid or expired token", error: error.message });
       // TODO: Add a user friendly 'Email verification failed' page
+    }
+  },
+
+  forgotPassword: async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        status: false,
+        error: {
+          message: "Body is empty. Provide an email.",
+        },
+      });
+    }
+
+    try {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate OTP
+      const otp = generateOTP();
+
+      // Store hashed OTP and expiration time in the database
+      user.otp.token = await bcrypt.hash(otp.password.toString(), 10);
+      user.otp.expires = otp.expires;
+      user.otp.isVerified = false;
+      await user.save();
+
+      // Send OTP to email
+      await sendOTP(email, otp.password);
+
+      res.status(200).json({
+        success: true,
+        message: `OTP sent to ${email}`,
+      });
+    } catch (error) {
+      console.error("Error during forgot password:", error); // Add detailed logging
+      res.status(500).json({
+        message: "An error occurred during password reset",
+        error: error.message,
+      });
     }
   },
 

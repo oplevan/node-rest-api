@@ -16,5 +16,6 @@ const validateSchema = require("../middlewares/validateSchema");
 router.post("/register", [validateSchema(registerSchema)], authController.register);
 router.post("/login", [validateSchema(loginSchema)], authController.login);
 router.get("/verify-email", authController.verifyEmail);
+router.post("/forgot-password", authController.forgotPassword);
 
 module.exports = router;
