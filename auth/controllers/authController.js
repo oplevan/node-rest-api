@@ -136,7 +136,7 @@ module.exports = {
     }
   },
 
-  forgotPassword: async (req, res) => {
+  getOTP: async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
@@ -181,7 +181,7 @@ module.exports = {
     }
   },
 
-  verifyOtp: async (req, res) => {
+  verifyOTP: async (req, res) => {
     const { email, otp } = req.body;
 
     if (!otp) {
@@ -242,6 +242,74 @@ module.exports = {
       console.error("Error during OTP verification:", error); // Add detailed logging
       res.status(500).json({
         message: "An error occurred during OTP verification",
+        error: error.message,
+      });
+    }
+  },
+
+  resetPassword: async (req, res) => {
+    const { email, password, repeatPassword } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        status: false,
+        error: {
+          message: "Email not provided",
+        },
+      });
+    }
+
+    if (!password || !repeatPassword) {
+      return res.status(400).json({
+        status: false,
+        error: {
+          message: "Password and repeat password are required",
+        },
+      });
+    }
+
+    if (password !== repeatPassword) {
+      return res.status(400).json({
+        status: false,
+        error: {
+          message: "Passwords do not match",
+        },
+      });
+    }
+
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found",
+        });
+      }
+
+      // Check if user has requested a password reset and and verified the OTP
+      if (!user.otp || !user.otp.isVerified) {
+        return res.status(400).json({
+          message: "User either hasn't requested a password reset or verified the OTP",
+        });
+      }
+
+      // Hash the new password
+      const newHashedPassword = await bcrypt.hash(password, 10);
+
+      // Update the user's password in the database
+      user.password = newHashedPassword;
+      // delete otp from the database
+      user.otp = undefined;
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        user: user.email,
+        message: "Password reset successfully",
+      });
+    } catch (error) {
+      console.error("Error during reset password:", error); // Add detailed logging
+      res.status(500).json({
+        message: "An error occurred during reset password",
         error: error.message,
       });
     }
