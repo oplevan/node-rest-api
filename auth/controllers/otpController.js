@@ -11,10 +11,7 @@ const transporter = nodemailer.createTransport({
 
 // generate 4-digit OTP
 const generateOTP = () => {
-  return {
-    password: Math.floor(1000 + Math.random() * 9000),
-    expires: Date.now() + 10 * 60 * 1000,
-  };
+  return Math.floor(1000 + Math.random() * 9000);
 };
 
 const sendOTP = async (email, otp) => {
@@ -35,12 +32,18 @@ const sendOTP = async (email, otp) => {
   });
 };
 
-const verifyOTP = async (user, otp) => {
-  return await bcrypt.compare(otp.toString(), user.resetPasswordToken);
+const verifyOTP = async (otpHash, userOtp) => {
+  return await bcrypt.compare(otpHash.toString(), userOtp);
+};
+
+const isOtpExpired = (otpExpirationTime) => {
+  const currentTime = Date.now();
+  return currentTime > otpExpirationTime;
 };
 
 module.exports = {
   generateOTP,
   sendOTP,
   verifyOTP,
+  isOtpExpired,
 };

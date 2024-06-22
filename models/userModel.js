@@ -12,9 +12,9 @@ const UserSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verificationToken: { type: String },
   otp: {
-    token: { type: String },
-    expires: { type: Date },
-    isVerified: { type: Boolean, default: false },
+    hash: { type: String },
+    expiry: { type: Date },
+    isVerified: { type: Boolean },
   },
 });
 
